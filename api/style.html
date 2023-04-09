@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Tomato Disease Classifier</title>
+    <style>
+        body {
+            background-image: url(Tomato.jpg);
+            /* background-repeat: no-repeat; */
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        .container {
+            margin: 0 auto;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin: 0;
+            color: #fc0303;
+            background-color: black;
+            top: 0;
+            opacity: 0.5;
+            padding: 2%;
+        }
+
+        form {
+            display: flex;
+
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ececec;
+        }
+
+        input[type="file"] {
+            width: 35%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 2px solid #dddddd;
+            background-color: #f9f9f9;
+            box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+            color: #555555;
+        }
+
+        input[type="file"]::before {
+            content: "Select an image";
+        }
+
+        input[type="file"]:hover,
+        input[type="file"]:focus {
+            border: 2px solid #de2424;
+        }
+
+        button[type="submit"] {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #a50d0f;
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #ff0000;
+        }
+
+        #image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        #result {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+
+
+        #result .loader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 60px;
+        }
+
+        #result .loader span {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-left: 10px;
+        }
+
+        #result .success {
+            color: #4CAF50;
+        }
+
+        #result .error {
+            color: #e74c3c;
+        }
+
+        .results {
+            border-radius: 5px;
+            border: 2px solid #dddddd;
+            background-color: #2a2a2a;
+
+            color: #ffffff;
+            width: 45%;
+            padding: 2%;
+            font-size: larger;
+            font-weight: bolder;
+            text-align: center;
+            align-self: center;
+
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tomato Disease Classifier</h1>
+    <br><br><br>
+    <form id="image-form">
+        <label for="image-file">Choose an image:</label>
+        <p style="color: #f0f0f0;background-color: #a50d0f;padding: 1%; font-weight: bolder; opacity: 0.8;">Upload the image of the
+            Tomato Leaf . This classifier only predicts Target Spot, Mosaic Virus and Bacterial Spot Diseases in Tomato Plants</p>
+        <input type="file" name="image-file" id="image-file" accept="image/*" required>
+        <button type="submit" onclick="handleSubmit(event)">Classify</button>
+    </form>
+    <div id="result"></div>
+    <script>
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const fileInput = document.querySelector('#image-file');
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('http://localhost:8000/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    throw new Error(response.statusText);
+                }
+                const data = await response.json();
+                const resultDiv = document.querySelector('#result');
+                resultDiv.innerHTML = `
+          
+            <img id="image-preview" src="${URL.createObjectURL(file)}">
+            <div class="results">
+            <p>Prediction: ${data.class}</p> <br>
+            <p>Confidence: ${data.confidence.toFixed(2)}%</p>
+            </div>
+          `;
+            } catch (error) {
+                console.error(error);
+                const resultDiv = document.querySelector('#result');
+                resultDiv.innerHTML = '<p>Something went wrong. Please try again later.</p>';
+            }
+        }
+    </script>
+</body>
+
+</html>
